@@ -1,0 +1,15 @@
+id: msz_abs_ff
+label: abs ff
+category: '[Msz]'
+templates:
+  imports: import msz
+  make: msz.abs_ff()
+inputs:
+- label: in
+  domain: stream
+  dtype: float
+outputs:
+- label: out
+  domain: stream
+  dtype: float
+file_format: 1

@@ -1,0 +1,15 @@
+id: msz_square_ff
+label: square ff
+category: '[Msz]'
+templates:
+  imports: import msz
+  make: msz.square_ff()
+inputs:
+- label: in
+  domain: stream
+  dtype: float
+outputs:
+- label: out
+  domain: stream
+  dtype: float
+file_format: 1

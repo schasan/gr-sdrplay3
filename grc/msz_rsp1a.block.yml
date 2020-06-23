@@ -1,0 +1,18 @@
+id: msz_rsp1a
+label: rsp1a
+category: '[Msz]'
+templates:
+  imports: import msz
+  make: msz.rsp1a(${frequency}, ${sample_rate})
+parameters:
+- id: frequency
+  label: Frequency
+  dtype: float
+- id: sample_rate
+  label: Sample_rate
+  dtype: raw
+outputs:
+- label: out
+  domain: stream
+  dtype: complex
+file_format: 1
