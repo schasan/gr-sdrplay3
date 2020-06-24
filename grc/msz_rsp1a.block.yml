@@ -1,18 +1,37 @@
 id: msz_rsp1a
-label: rsp1a
+
+label: SDR Play rsp1a
+
 category: '[Msz]'
+
 templates:
   imports: import msz
-  make: msz.rsp1a(${frequency}, ${sample_rate})
+  make: msz.rsp1a(${frequency}, ${sample_rate}, ${gain})
+  callbacks:
+  - set_frequency(${frequency})
+  - set_sample_rate(${sample_rate})
+  - set_gain(${gain})
+
+cpp_templates:
+  callbacks:
+  - set_frequency(${frequency})
+  - set_sample_rate(${sample_rate})
+  - set_gain(${gain})
+
 parameters:
 - id: frequency
   label: Frequency
   dtype: float
 - id: sample_rate
-  label: Sample_rate
+  label: Sample Rate
   dtype: raw
+- id: gain
+  label: Gain
+  dtype: float
+  
 outputs:
 - label: out
   domain: stream
   dtype: complex
+
 file_format: 1

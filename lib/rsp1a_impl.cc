@@ -83,14 +83,14 @@ void EventCallback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
                 sdrplay_api_EventParamsT *params, void *cbContext) {
 }
 
-rsp1a::sptr rsp1a::make(float frequency, long sample_rate) {
-	return gnuradio::get_initial_sptr(new rsp1a_impl(frequency, sample_rate));
+rsp1a::sptr rsp1a::make(float frequency, long sample_rate, float gain) {
+	return gnuradio::get_initial_sptr(new rsp1a_impl(frequency, sample_rate, gain));
 }
 
 /*
  * The private constructor
  */
-rsp1a_impl::rsp1a_impl(float frequency, long sample_rate) :
+rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float gain) :
 		gr::sync_block("rsp1a", gr::io_signature::make(0, 0, sizeof(float)),
 				gr::io_signature::make(1, 1, sizeof(gr_complex))) {
 	GR_LOG_INFO(d_logger, "Open SDRPlay API");
@@ -291,6 +291,20 @@ rsp1a_impl::~rsp1a_impl() {
 	// We never get here ...
 	GR_LOG_INFO(d_logger, "sdrplay closing down");
 	sdrplay_api_Close();
+}
+
+void rsp1a_impl::set_frequency(float freq) {
+	GR_LOG_INFO(d_logger, "setting frequency");
+	m_freq = freq;
+}
+
+void rsp1a_impl::set_gain(float gain) {
+	GR_LOG_INFO(d_logger, "setting gain");
+	m_gain = gain;
+}
+
+void rsp1a_impl::set_sample_rate(long sample_rate) {
+	GR_LOG_INFO(d_logger, "setting sample rate");
 }
 
 int rsp1a_impl::work(int noutput_items, gr_vector_const_void_star &input_items,
