@@ -46,14 +46,14 @@ namespace gr {
       sdrplay_api_CallbackFnsT m_cbFns;
       sdrplay_api_DeviceParamsT *m_deviceParams = NULL;
       sdrplay_api_RxChannelParamsT *m_chParams;
-      float m_gain = 3.0;
+      int m_gain = 40;
       float m_freq = 89300000.0;
 
      public:
       rsp1a_impl(float frequency, long sample_rate, float gain);
       ~rsp1a_impl();
       void set_frequency(float freq);
-      void set_gain(float gain);
+      void set_gain(int gain);
       void set_sample_rate(long sample_rate);
 
       // Where all the action really happens

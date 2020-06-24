@@ -65,7 +65,7 @@ blocks:
     options: '[0, 1, 2]'
     orient: Qt.QVBoxLayout
     type: real
-    value: 94.4e6
+    value: 89.3e6
     widget: radio_buttons
   states:
     bus_sink: false
@@ -82,10 +82,10 @@ blocks:
     label: ''
     min_len: '200'
     orient: Qt.Horizontal
-    rangeType: float
-    start: '10'
+    rangeType: int
+    start: '20'
     step: '1'
-    stop: '70'
+    stop: '59'
     value: '40'
     widget: counter_slider
   states:

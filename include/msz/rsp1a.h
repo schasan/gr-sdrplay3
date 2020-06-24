@@ -45,7 +45,7 @@ namespace gr {
        * class. msz::rsp1a::make is the public interface for
        * creating new instances.
        */
-      static sptr make(float frequency, long sample_rate, float gain);
+      static sptr make(float frequency, long sample_rate, int gain);
 
       /*!
        * \brief Pass frequency parameter from GUI
@@ -55,7 +55,7 @@ namespace gr {
       /*!
        * \brief Pass gain parameter from GUI
        */
-      virtual void set_gain(float gain) = 0;
+      virtual void set_gain(int gain) = 0;
 
       /*!
        * \brief Pass sample rate parameter from GUI

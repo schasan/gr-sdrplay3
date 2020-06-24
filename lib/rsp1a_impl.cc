@@ -83,7 +83,7 @@ void EventCallback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
                 sdrplay_api_EventParamsT *params, void *cbContext) {
 }
 
-rsp1a::sptr rsp1a::make(float frequency, long sample_rate, float gain) {
+rsp1a::sptr rsp1a::make(float frequency, long sample_rate, int gain) {
 	return gnuradio::get_initial_sptr(new rsp1a_impl(frequency, sample_rate, gain));
 }
 
@@ -295,11 +295,25 @@ rsp1a_impl::~rsp1a_impl() {
 
 void rsp1a_impl::set_frequency(float freq) {
 	GR_LOG_INFO(d_logger, "setting frequency");
+	m_chParams->tunerParams.rfFreq.rfHz = freq;
+	if ((m_err = sdrplay_api_Update(m_chosenDevice->dev, m_chosenDevice->tuner,
+			sdrplay_api_Update_Tuner_Frf,
+            sdrplay_api_Update_Ext1_None)) != sdrplay_api_Success) {
+		GR_LOG_FATAL(d_logger, "sdrplay error setting frequency");
+		GR_LOG_FATAL(d_logger, sdrplay_api_GetErrorString(m_err));
+	}
 	m_freq = freq;
 }
 
-void rsp1a_impl::set_gain(float gain) {
+void rsp1a_impl::set_gain(int gain) {
 	GR_LOG_INFO(d_logger, "setting gain");
+	m_chParams->tunerParams.gain.gRdB = gain;
+	if ((m_err = sdrplay_api_Update(m_chosenDevice->dev, m_chosenDevice->tuner,
+			sdrplay_api_Update_Tuner_Gr,
+            sdrplay_api_Update_Ext1_None)) != sdrplay_api_Success) {
+		GR_LOG_FATAL(d_logger, "sdrplay error setting gain");
+		GR_LOG_FATAL(d_logger, sdrplay_api_GetErrorString(m_err));
+	}
 	m_gain = gain;
 }
 

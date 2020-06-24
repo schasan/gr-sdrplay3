@@ -27,7 +27,7 @@ parameters:
   dtype: raw
 - id: gain
   label: Gain
-  dtype: float
+  dtype: int
   
 outputs:
 - label: out
