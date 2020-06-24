@@ -44,11 +44,41 @@ blocks:
     coordinate: [304, 12]
     rotation: 0
     state: enabled
+- name: frequency
+  id: variable_qtgui_chooser
+  parameters:
+    comment: ''
+    gui_hint: 0,0,1,1
+    label: Frequenz
+    label0: hr1
+    label1: hr3
+    label2: ''
+    label3: ''
+    label4: ''
+    labels: '[]'
+    num_opts: '2'
+    option0: 94.4e6
+    option1: 89.3e6
+    option2: '2'
+    option3: '3'
+    option4: '4'
+    options: '[0, 1, 2]'
+    orient: Qt.QVBoxLayout
+    type: real
+    value: 94.4e6
+    widget: radio_buttons
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 452.0]
+    rotation: 0
+    state: true
 - name: gain
   id: variable_qtgui_range
   parameters:
     comment: ''
-    gui_hint: ''
+    gui_hint: 0,1,1,1
     label: ''
     min_len: '200'
     orient: Qt.Horizontal
@@ -62,7 +92,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [640, 512.0]
+    coordinate: [272, 456.0]
     rotation: 0
     state: true
 - name: samp_rate
@@ -81,7 +111,7 @@ blocks:
   id: variable_qtgui_range
   parameters:
     comment: ''
-    gui_hint: ''
+    gui_hint: 0,2,1,1
     label: Volume
     min_len: '200'
     orient: Qt.Horizontal
@@ -95,7 +125,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [528, 496.0]
+    coordinate: [424, 456.0]
     rotation: 0
     state: true
 - name: analog_wfm_rcv_0
@@ -180,7 +210,8 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    frequency: 94.4e6
+    frequency: frequency
+    gain: gain
     maxoutbuf: '0'
     minoutbuf: '0'
     sample_rate: samp_rate
@@ -219,11 +250,11 @@ blocks:
     color8: '0'
     color9: '0'
     comment: ''
-    fc: '0'
+    fc: frequency
     fftsize: '1024'
     freqhalf: 'True'
     grid: 'False'
-    gui_hint: ''
+    gui_hint: 1,0,6,3
     int_max: '10'
     int_min: '-140'
     label1: ''
