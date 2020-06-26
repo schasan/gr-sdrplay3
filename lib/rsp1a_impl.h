@@ -47,7 +47,13 @@ namespace gr {
       sdrplay_api_DeviceParamsT *m_deviceParams = NULL;
       sdrplay_api_RxChannelParamsT *m_chParams;
       int m_gain = 40;
-      float m_freq = 89300000.0;
+      void gain(int gain) { m_gain = gain; };
+      int gain() { return m_gain; }
+      float m_freq;
+      void freq(float freq) { m_freq = freq; };
+      float freq() { return m_freq; };
+      bool start();
+      bool stop();
 
      public:
       rsp1a_impl(float frequency, long sample_rate, float gain);

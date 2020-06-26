@@ -90,9 +90,22 @@ rsp1a::sptr rsp1a::make(float frequency, long sample_rate, int gain) {
 /*
  * The private constructor
  */
-rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float gain) :
+rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float initialgain) :
 		gr::sync_block("rsp1a", gr::io_signature::make(0, 0, sizeof(float)),
 				gr::io_signature::make(1, 1, sizeof(gr_complex))) {
+	gain(initialgain);
+	freq(frequency);
+}
+
+/*
+ * Our virtual destructor.
+ */
+rsp1a_impl::~rsp1a_impl() {
+}
+
+bool
+rsp1a_impl::start() {
+	GR_LOG_INFO(d_logger, "Block sdrplay starting up - start() function called");
 	GR_LOG_INFO(d_logger, "Open SDRPlay API");
 	if ((m_err = sdrplay_api_Open()) != sdrplay_api_Success) {
 		GR_LOG_FATAL(d_logger, "Failed to open SDRPlay API");
@@ -240,7 +253,7 @@ rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float gain) :
 					if (!m_master_slave) {		// Change single tuner mode to ZIF
 						m_chParams->tunerParams.ifType = sdrplay_api_IF_Zero;
 					}
-					m_chParams->tunerParams.gain.gRdB = 40;
+					m_chParams->tunerParams.gain.gRdB = gain();
 					m_chParams->tunerParams.gain.LNAstate = 5;
 
 					// Disable AGC
@@ -282,15 +295,15 @@ rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float gain) :
 			}
 		}
 	}
+
+	return true;
 }
 
-/*
- * Our virtual destructor.
- */
-rsp1a_impl::~rsp1a_impl() {
-	// We never get here ...
-	GR_LOG_INFO(d_logger, "sdrplay closing down");
+bool
+rsp1a_impl::stop() {
+	GR_LOG_INFO(d_logger, "sdrplay closing down - stop() function called");
 	sdrplay_api_Close();
+	return true;
 }
 
 void rsp1a_impl::set_frequency(float freq) {

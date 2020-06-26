@@ -5,9 +5,8 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: FM_Rec
+# Title: Morse reception
 # Author: Mario Schulz
-# Description: Radio hören
 # GNU Radio version: 3.8.1.0
 
 from distutils.version import StrictVersion
@@ -27,7 +26,6 @@ from PyQt5.QtCore import QObject, pyqtSlot
 from gnuradio import qtgui
 from gnuradio.filter import firdes
 import sip
-from gnuradio import analog
 from gnuradio import audio
 from gnuradio import blocks
 from gnuradio import filter
@@ -42,12 +40,12 @@ import msz
 
 from gnuradio import qtgui
 
-class top_block(gr.top_block, Qt.QWidget):
+class CW_Rec(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "FM_Rec")
+        gr.top_block.__init__(self, "Morse reception")
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("FM_Rec")
+        self.setWindowTitle("Morse reception")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -65,7 +63,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "CW_Rec")
 
         try:
             if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -79,21 +77,13 @@ class top_block(gr.top_block, Qt.QWidget):
         # Variables
         ##################################################
         self.volume = volume = 50
-        self.samp_rate = samp_rate = 2000000
+        self.samp_rate = samp_rate = 2e6
         self.gain = gain = 40
-        self.frequency = frequency = 89.3e6
-        self.down_rate = down_rate = 250000
+        self.frequency = frequency = 144475e3
 
         ##################################################
         # Blocks
         ##################################################
-        self._volume_range = Range(0, 100, 1, 50, 200)
-        self._volume_win = RangeWidget(self._volume_range, self.set_volume, 'Volume', "counter_slider", float)
-        self.top_grid_layout.addWidget(self._volume_win, 0, 2, 1, 1)
-        for r in range(0, 1):
-            self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(2, 3):
-            self.top_grid_layout.setColumnStretch(c, 1)
         self._gain_range = Range(20, 59, 1, 40, 200)
         self._gain_win = RangeWidget(self._gain_range, self.set_gain, 'Gain', "counter_slider", int)
         self.top_grid_layout.addWidget(self._gain_win, 0, 1, 1, 1)
@@ -102,41 +92,57 @@ class top_block(gr.top_block, Qt.QWidget):
         for c in range(1, 2):
             self.top_grid_layout.setColumnStretch(c, 1)
         # Create the options list
-        self._frequency_options = (94.4e6, 96.7e6, 89.3e6, 91.8e6, )
+        self._frequency_options = (144475e3, 89.3e6, )
         # Create the labels list
-        self._frequency_labels = ('hr1', 'hr2', 'hr3', 'radio X', )
+        self._frequency_labels = ('Bake Feldberg', 'hr3', )
         # Create the combo box
-        self._frequency_tool_bar = Qt.QToolBar(self)
-        self._frequency_tool_bar.addWidget(Qt.QLabel('Frequenz' + ": "))
-        self._frequency_combo_box = Qt.QComboBox()
-        self._frequency_tool_bar.addWidget(self._frequency_combo_box)
-        for _label in self._frequency_labels: self._frequency_combo_box.addItem(_label)
-        self._frequency_callback = lambda i: Qt.QMetaObject.invokeMethod(self._frequency_combo_box, "setCurrentIndex", Qt.Q_ARG("int", self._frequency_options.index(i)))
-        self._frequency_callback(self.frequency)
-        self._frequency_combo_box.currentIndexChanged.connect(
-            lambda i: self.set_frequency(self._frequency_options[i]))
         # Create the radio buttons
-        self.top_grid_layout.addWidget(self._frequency_tool_bar, 0, 0, 1, 1)
+        self._frequency_group_box = Qt.QGroupBox('Frequenz' + ": ")
+        self._frequency_box = Qt.QVBoxLayout()
+        class variable_chooser_button_group(Qt.QButtonGroup):
+            def __init__(self, parent=None):
+                Qt.QButtonGroup.__init__(self, parent)
+            @pyqtSlot(int)
+            def updateButtonChecked(self, button_id):
+                self.button(button_id).setChecked(True)
+        self._frequency_button_group = variable_chooser_button_group()
+        self._frequency_group_box.setLayout(self._frequency_box)
+        for i, _label in enumerate(self._frequency_labels):
+            radio_button = Qt.QRadioButton(_label)
+            self._frequency_box.addWidget(radio_button)
+            self._frequency_button_group.addButton(radio_button, i)
+        self._frequency_callback = lambda i: Qt.QMetaObject.invokeMethod(self._frequency_button_group, "updateButtonChecked", Qt.Q_ARG("int", self._frequency_options.index(i)))
+        self._frequency_callback(self.frequency)
+        self._frequency_button_group.buttonClicked[int].connect(
+            lambda i: self.set_frequency(self._frequency_options[i]))
+        self.top_grid_layout.addWidget(self._frequency_group_box, 0, 0, 1, 1)
         for r in range(0, 1):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self.rational_resampler_xxx_0 = filter.rational_resampler_fff(
-                interpolation=24,
-                decimation=250,
+        self._volume_range = Range(0, 100, 1, 50, 200)
+        self._volume_win = RangeWidget(self._volume_range, self.set_volume, 'Volume', "counter_slider", float)
+        self.top_grid_layout.addWidget(self._volume_win, 0, 2, 1, 1)
+        for r in range(0, 1):
+            self.top_grid_layout.setRowStretch(r, 1)
+        for c in range(2, 3):
+            self.top_grid_layout.setColumnStretch(c, 1)
+        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
+                interpolation=441,
+                decimation=100,
                 taps=None,
                 fractional_bw=None)
-        self.qtgui_waterfall_sink_x_0_0 = qtgui.waterfall_sink_c(
-            1024, #size
+        self.qtgui_waterfall_sink_x_1 = qtgui.waterfall_sink_c(
+            128, #size
             firdes.WIN_BLACKMAN_hARRIS, #wintype
-            frequency, #fc
-            samp_rate/50, #bw
+            0, #fc
+            1000, #bw
             "", #name
             1 #number of inputs
         )
-        self.qtgui_waterfall_sink_x_0_0.set_update_time(0.10)
-        self.qtgui_waterfall_sink_x_0_0.enable_grid(False)
-        self.qtgui_waterfall_sink_x_0_0.enable_axis_labels(True)
+        self.qtgui_waterfall_sink_x_1.set_update_time(0.10)
+        self.qtgui_waterfall_sink_x_1.enable_grid(False)
+        self.qtgui_waterfall_sink_x_1.enable_axis_labels(True)
 
 
 
@@ -149,52 +155,48 @@ class top_block(gr.top_block, Qt.QWidget):
 
         for i in range(1):
             if len(labels[i]) == 0:
-                self.qtgui_waterfall_sink_x_0_0.set_line_label(i, "Data {0}".format(i))
+                self.qtgui_waterfall_sink_x_1.set_line_label(i, "Data {0}".format(i))
             else:
-                self.qtgui_waterfall_sink_x_0_0.set_line_label(i, labels[i])
-            self.qtgui_waterfall_sink_x_0_0.set_color_map(i, colors[i])
-            self.qtgui_waterfall_sink_x_0_0.set_line_alpha(i, alphas[i])
+                self.qtgui_waterfall_sink_x_1.set_line_label(i, labels[i])
+            self.qtgui_waterfall_sink_x_1.set_color_map(i, colors[i])
+            self.qtgui_waterfall_sink_x_1.set_line_alpha(i, alphas[i])
 
-        self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-140, 10)
+        self.qtgui_waterfall_sink_x_1.set_intensity_range(-140, 10)
 
-        self._qtgui_waterfall_sink_x_0_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0_0.pyqwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_0_0_win, 1, 0, 2, 3)
-        for r in range(1, 3):
+        self._qtgui_waterfall_sink_x_1_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_1.pyqwidget(), Qt.QWidget)
+        self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_1_win, 1, 0, 6, 3)
+        for r in range(1, 7):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 3):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.msz_rsp1a_0 = msz.rsp1a(frequency, samp_rate, gain)
-        self.low_pass_filter_0 = filter.fir_filter_ccf(
-            int(samp_rate/down_rate),
-            firdes.low_pass(
-                2,
+        self.blocks_complex_to_real_0 = blocks.complex_to_real(1)
+        self.band_pass_filter_0 = filter.fir_filter_ccf(
+            200,
+            firdes.band_pass(
+                1,
                 samp_rate,
-                100e3,
-                10e3,
-                firdes.WIN_KAISER,
+                50,
+                500,
+                50,
+                firdes.WIN_HAMMING,
                 6.76))
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(volume/100)
-        self.audio_sink_0 = audio.sink(24000, '', True)
-        self.analog_wfm_rcv_0 = analog.wfm_rcv(
-        	quad_rate=down_rate,
-        	audio_decimation=1,
-        )
+        self.audio_sink_0 = audio.sink(44100, '', True)
 
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_wfm_rcv_0, 0), (self.rational_resampler_xxx_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.audio_sink_0, 0))
-        self.connect((self.low_pass_filter_0, 0), (self.analog_wfm_rcv_0, 0))
-        self.connect((self.msz_rsp1a_0, 0), (self.low_pass_filter_0, 0))
-        self.connect((self.msz_rsp1a_0, 0), (self.qtgui_waterfall_sink_x_0_0, 0))
-        self.connect((self.rational_resampler_xxx_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.qtgui_waterfall_sink_x_1, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.rational_resampler_xxx_0, 0))
+        self.connect((self.blocks_complex_to_real_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.msz_rsp1a_0, 0), (self.band_pass_filter_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.blocks_complex_to_real_0, 0))
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "top_block")
+        self.settings = Qt.QSettings("GNU Radio", "CW_Rec")
         self.settings.setValue("geometry", self.saveGeometry())
         event.accept()
 
@@ -203,16 +205,14 @@ class top_block(gr.top_block, Qt.QWidget):
 
     def set_volume(self, volume):
         self.volume = volume
-        self.blocks_multiply_const_vxx_0.set_k(self.volume/100)
 
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.low_pass_filter_0.set_taps(firdes.low_pass(2, self.samp_rate, 100e3, 10e3, firdes.WIN_KAISER, 6.76))
+        self.band_pass_filter_0.set_taps(firdes.band_pass(1, self.samp_rate, 50, 500, 50, firdes.WIN_HAMMING, 6.76))
         self.msz_rsp1a_0.set_sample_rate(self.samp_rate)
-        self.qtgui_waterfall_sink_x_0_0.set_frequency_range(self.frequency, self.samp_rate/50)
 
     def get_gain(self):
         return self.gain
@@ -228,19 +228,12 @@ class top_block(gr.top_block, Qt.QWidget):
         self.frequency = frequency
         self._frequency_callback(self.frequency)
         self.msz_rsp1a_0.set_frequency(self.frequency)
-        self.qtgui_waterfall_sink_x_0_0.set_frequency_range(self.frequency, self.samp_rate/50)
-
-    def get_down_rate(self):
-        return self.down_rate
-
-    def set_down_rate(self, down_rate):
-        self.down_rate = down_rate
 
 
 
 
 
-def main(top_block_cls=top_block, options=None):
+def main(top_block_cls=CW_Rec, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
