@@ -1,0 +1,28 @@
+id: msz_cw
+label: cw
+category: '[Msz]'
+templates:
+  imports: import msz
+  make: msz.cw(${avg_len}, ${hyst_low}, ${hyst_high})
+parameters:
+- id: avg_len
+  label: Number of samples averaged 
+  dtype: int
+- id: hyst_low
+  label: Hysteresis toggle to low
+  dtype: float
+- id: hyst_high
+  label: Hysteresis toggle to high
+  dtype: float
+inputs:
+- label: in
+  domain: stream
+  dtype: float
+outputs:
+- label: Floating for hysteresis adjustment
+  domain: stream
+  dtype: float
+- label: Digital output
+  domain: stream
+  dtype: int
+file_format: 1

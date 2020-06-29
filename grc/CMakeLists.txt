@@ -21,5 +21,6 @@
 install(FILES
     msz_abs_ff.block.yml
     msz_square_ff.block.yml
-    msz_rsp1a.block.yml DESTINATION share/gnuradio/grc/blocks
+    msz_rsp1a.block.yml
+    msz_cw.block.yml DESTINATION share/gnuradio/grc/blocks
 )

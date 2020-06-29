@@ -26,5 +26,6 @@ install(FILES
     abs_ff.h
     square_ff.h
     rsp1a.h
-    rsp1a.h DESTINATION include/msz
+    rsp1a.h
+    cw.h DESTINATION include/msz
 )

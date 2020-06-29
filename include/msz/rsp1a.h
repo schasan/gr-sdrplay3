@@ -23,6 +23,7 @@
 
 #include <msz/api.h>
 #include <gnuradio/sync_block.h>
+#include "sdrplay_api.h"
 
 namespace gr {
   namespace msz {
@@ -45,7 +46,7 @@ namespace gr {
        * class. msz::rsp1a::make is the public interface for
        * creating new instances.
        */
-      static sptr make(float frequency, long sample_rate, int gain);
+      static sptr make(float frequency, long sample_rate, int gain, int bw);
 
       /*!
        * \brief Pass frequency parameter from GUI
@@ -61,6 +62,11 @@ namespace gr {
        * \brief Pass sample rate parameter from GUI
        */
       virtual void set_sample_rate(long sample_rate) = 0;
+
+      /*! \brief Set bandwidth
+       *
+       */
+      virtual int set_bw(int bw) = 0;
     };
 
   } // namespace msz

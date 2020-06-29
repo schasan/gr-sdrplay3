@@ -83,6 +83,7 @@ class top_block(gr.top_block, Qt.QWidget):
         self.gain = gain = 40
         self.frequency = frequency = 89.3e6
         self.down_rate = down_rate = 250000
+        self.bandwidth = bandwidth = 1536
 
         ##################################################
         # Blocks
@@ -121,6 +122,26 @@ class top_block(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
+        # Create the options list
+        self._bandwidth_options = [200, 300, 600, 1536, 5000, 6000, 7000, 8000]
+        # Create the labels list
+        self._bandwidth_labels = ['200', '300', '600', '1536', '5000', '6000', '7000', '8000']
+        # Create the combo box
+        self._bandwidth_tool_bar = Qt.QToolBar(self)
+        self._bandwidth_tool_bar.addWidget(Qt.QLabel('Bandwidth' + ": "))
+        self._bandwidth_combo_box = Qt.QComboBox()
+        self._bandwidth_tool_bar.addWidget(self._bandwidth_combo_box)
+        for _label in self._bandwidth_labels: self._bandwidth_combo_box.addItem(_label)
+        self._bandwidth_callback = lambda i: Qt.QMetaObject.invokeMethod(self._bandwidth_combo_box, "setCurrentIndex", Qt.Q_ARG("int", self._bandwidth_options.index(i)))
+        self._bandwidth_callback(self.bandwidth)
+        self._bandwidth_combo_box.currentIndexChanged.connect(
+            lambda i: self.set_bandwidth(self._bandwidth_options[i]))
+        # Create the radio buttons
+        self.top_grid_layout.addWidget(self._bandwidth_tool_bar, 0, 3, 1, 1)
+        for r in range(0, 1):
+            self.top_grid_layout.setRowStretch(r, 1)
+        for c in range(3, 4):
+            self.top_grid_layout.setColumnStretch(c, 1)
         self.rational_resampler_xxx_0 = filter.rational_resampler_fff(
                 interpolation=24,
                 decimation=250,
@@ -158,12 +179,12 @@ class top_block(gr.top_block, Qt.QWidget):
         self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-140, 10)
 
         self._qtgui_waterfall_sink_x_0_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0_0.pyqwidget(), Qt.QWidget)
-        self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_0_0_win, 1, 0, 2, 3)
+        self.top_grid_layout.addWidget(self._qtgui_waterfall_sink_x_0_0_win, 1, 0, 2, 4)
         for r in range(1, 3):
             self.top_grid_layout.setRowStretch(r, 1)
-        for c in range(0, 3):
+        for c in range(0, 4):
             self.top_grid_layout.setColumnStretch(c, 1)
-        self.msz_rsp1a_0 = msz.rsp1a(frequency, samp_rate, gain)
+        self.msz_rsp1a_0 = msz.rsp1a(frequency, samp_rate, gain, bandwidth)
         self.low_pass_filter_0 = filter.fir_filter_ccf(
             int(samp_rate/down_rate),
             firdes.low_pass(
@@ -235,6 +256,14 @@ class top_block(gr.top_block, Qt.QWidget):
 
     def set_down_rate(self, down_rate):
         self.down_rate = down_rate
+
+    def get_bandwidth(self):
+        return self.bandwidth
+
+    def set_bandwidth(self, bandwidth):
+        self.bandwidth = bandwidth
+        self._bandwidth_callback(self.bandwidth)
+        self.msz_rsp1a_0.set_bw(self.bandwidth)
 
 
 

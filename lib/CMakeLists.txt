@@ -27,6 +27,7 @@ list(APPEND msz_sources
     abs_ff_impl.cc
     square_ff_impl.cc
     rsp1a_impl.cc
+    cw_impl.cc
 )
 
 set(msz_sources "${msz_sources}" PARENT_SCOPE)

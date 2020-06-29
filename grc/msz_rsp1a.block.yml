@@ -6,17 +6,19 @@ category: '[Msz]'
 
 templates:
   imports: import msz
-  make: msz.rsp1a(${frequency}, ${sample_rate}, ${gain})
+  make: msz.rsp1a(${frequency}, ${sample_rate}, ${gain}, ${bw})
   callbacks:
   - set_frequency(${frequency})
   - set_sample_rate(${sample_rate})
   - set_gain(${gain})
+  - set_bw(${bw})
 
 cpp_templates:
   callbacks:
   - set_frequency(${frequency})
   - set_sample_rate(${sample_rate})
   - set_gain(${gain})
+  - set_bw(${bw})
 
 parameters:
 - id: frequency
@@ -28,7 +30,14 @@ parameters:
 - id: gain
   label: Gain
   dtype: int
-  
+- id: bw
+  label: Bandwidth
+  dtype: int
+  default: 2000
+
+asserts:
+- ${gain > 0}
+
 outputs:
 - label: out
   domain: stream

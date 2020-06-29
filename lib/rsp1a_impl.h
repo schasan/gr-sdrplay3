@@ -52,15 +52,19 @@ namespace gr {
       float m_freq;
       void freq(float freq) { m_freq = freq; };
       float freq() { return m_freq; };
+      int m_bw = sdrplay_api_BW_1_536;
+      void bw(int bw) { m_bw = bw; };
+      int bw() { return m_bw; };
       bool start();
       bool stop();
 
      public:
-      rsp1a_impl(float frequency, long sample_rate, float gain);
+      rsp1a_impl(float frequency, long sample_rate, float gain, int bw);
       ~rsp1a_impl();
       void set_frequency(float freq);
       void set_gain(int gain);
       void set_sample_rate(long sample_rate);
+      int set_bw(int bw);
 
       // Where all the action really happens
       int work(

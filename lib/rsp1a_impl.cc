@@ -83,18 +83,19 @@ void EventCallback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT tuner,
                 sdrplay_api_EventParamsT *params, void *cbContext) {
 }
 
-rsp1a::sptr rsp1a::make(float frequency, long sample_rate, int gain) {
-	return gnuradio::get_initial_sptr(new rsp1a_impl(frequency, sample_rate, gain));
+rsp1a::sptr rsp1a::make(float frequency, long sample_rate, int gain, int bw) {
+	return gnuradio::get_initial_sptr(new rsp1a_impl(frequency, sample_rate, gain, bw));
 }
 
 /*
  * The private constructor
  */
-rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float initialgain) :
+rsp1a_impl::rsp1a_impl(float frequency, long sample_rate, float initialgain, int initialbw) :
 		gr::sync_block("rsp1a", gr::io_signature::make(0, 0, sizeof(float)),
 				gr::io_signature::make(1, 1, sizeof(gr_complex))) {
 	gain(initialgain);
 	freq(frequency);
+	set_bw(initialbw);
 }
 
 /*
@@ -247,9 +248,9 @@ rsp1a_impl::start() {
 				// Configure tuner parameters (depends on selected Tuner which set of parameters to use)
 				m_chParams = (m_chosenDevice->tuner == sdrplay_api_Tuner_B) ? m_deviceParams->rxChannelB : m_deviceParams->rxChannelA;
 				if (m_chParams != NULL) {
-					m_chParams->tunerParams.rfFreq.rfHz = 94400000.0;       // hr1
-					m_chParams->tunerParams.rfFreq.rfHz = 89300000.0;       // hr3
-					m_chParams->tunerParams.bwType = sdrplay_api_BW_1_536;
+					m_chParams->tunerParams.rfFreq.rfHz = freq();
+					m_chParams->tunerParams.bwType = (sdrplay_api_Bw_MHzT)bw();
+					//m_chParams->tunerParams.bwType = sdrplay_api_BW_1_536;
 					if (!m_master_slave) {		// Change single tuner mode to ZIF
 						m_chParams->tunerParams.ifType = sdrplay_api_IF_Zero;
 					}
@@ -328,6 +329,53 @@ void rsp1a_impl::set_gain(int gain) {
 		GR_LOG_FATAL(d_logger, sdrplay_api_GetErrorString(m_err));
 	}
 	m_gain = gain;
+}
+
+int rsp1a_impl::set_bw(int bw) {
+	const int allowed_bw[] = {
+		    sdrplay_api_BW_0_200,
+		    sdrplay_api_BW_0_300,
+		    sdrplay_api_BW_0_600,
+		    sdrplay_api_BW_1_536,
+		    sdrplay_api_BW_5_000,
+		    sdrplay_api_BW_6_000,
+		    sdrplay_api_BW_7_000,
+		    sdrplay_api_BW_8_000,
+			sdrplay_api_BW_Undefined
+	};
+	// Needs assertions/corrections as only some discrete values are allowed
+	int i = 0;
+	int best_fit_index;
+	int best_fit_minimum = 100000000;
+
+	while (allowed_bw[i] != sdrplay_api_BW_Undefined) {
+		if (abs(bw - allowed_bw[i]) < best_fit_minimum) {
+			best_fit_minimum = abs(bw - allowed_bw[i]);
+			best_fit_index = i;
+		}
+		i++;
+	}
+	if (bw != allowed_bw[best_fit_index])
+		GR_LOG_INFO(d_logger, "Bandwidth selection overruled by next best possible value");
+
+	sprintf(m_pr_buffer, "Selected bandwidth: %d", allowed_bw[best_fit_index]);
+	GR_LOG_INFO(d_logger, m_pr_buffer);
+
+	m_bw = allowed_bw[best_fit_index];
+
+#ifdef THIS_IS_AN_ERROR
+	// Set bandwidth just together with a frequency change
+	m_chParams->tunerParams.bwType = (sdrplay_api_Bw_MHzT)m_bw;
+
+	if ((m_err = sdrplay_api_Update(m_chosenDevice->dev, m_chosenDevice->tuner,
+			sdrplay_api_Update_Tuner_Frf,
+            sdrplay_api_Update_Ext1_None)) != sdrplay_api_Success) {
+		GR_LOG_FATAL(d_logger, "sdrplay error setting bandwidth");
+		GR_LOG_FATAL(d_logger, sdrplay_api_GetErrorString(m_err));
+	}
+#endif
+
+	return m_bw;
 }
 
 void rsp1a_impl::set_sample_rate(long sample_rate) {
