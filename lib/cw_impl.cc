@@ -701,6 +701,7 @@ namespace gr {
               gr::io_signature::make(1, 1, sizeof(float)),
               gr::io_signature::makev(2, 2, get_output_sizes()))
     {
+    	message_port_register_out(pmt::mp("cwevent"));
     	set_history(avg_len);
     	m_avg_len = avg_len;
     	m_hyst_high = hyst_high;
@@ -723,6 +724,7 @@ namespace gr {
     {
       const float *in = (const float *) input_items[0];
       static int previous = 0;
+      static long n = 0L;	// Sample counter
       float *out_analog = (float *) output_items[0];
       int *out_digital = (int *) output_items[1];
 
@@ -738,11 +740,14 @@ namespace gr {
     	  sum /= m_avg_len;
     	  if (previous == 1 && sum <= m_hyst_low) {
     		  previous = 0;
+    		  message_port_pub(pmt::mp("cwevent"), pmt::from_long(n<<1));
     	  } else if (previous == 0 && sum >= m_hyst_high) {
     		  previous = 1;
+    		  message_port_pub(pmt::mp("cwevent"), pmt::from_long((n<<1)|1));
     	  }
     	  out_analog[i] = sum;
     	  out_digital[i] = previous;
+    	  n++;
       }
       // Tell runtime system how many output items we produced.
       return noutput_items;

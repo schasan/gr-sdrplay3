@@ -25,4 +25,6 @@ outputs:
 - label: Digital output
   domain: stream
   dtype: int
+- domain: message
+  id: cwevent
 file_format: 1

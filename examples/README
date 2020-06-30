@@ -1,4 +1,16 @@
-It is considered good practice to add examples in here to demonstrate the
-functionality of your OOT module. Python scripts, GRC flow graphs or other
-code can go here.
+# fmradio
 
+Demo sdrplay interface to receive frequency modulated radio
+
+# cwradio
+
+Supposed to become:
+Receive cw via sdrplay and decode.
+
+# cwdecode
+
+Up to now creates an arbitrary beep pattern, converts into digital via rectifier follows by RC.
+Then analyze timing in Python module to automatically clusterize dash and dots, letter space, word space and pause.
+Using scikits kMean "machine learning" to interpret incoming signal sequence.
+
+Supposed to receive a decoder just after that stage.

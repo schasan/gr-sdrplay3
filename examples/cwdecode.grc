@@ -27,7 +27,7 @@ options:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 8]
+    coordinate: [16, 24.0]
     rotation: 0
     state: enabled
 
@@ -41,7 +41,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [184, 12]
+    coordinate: [192, 32.0]
     rotation: 0
     state: enabled
 - name: analog_sig_source_x_0
@@ -63,10 +63,32 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 312.0]
+    coordinate: [88, 456.0]
     rotation: 0
     state: true
 - name: analog_sig_source_x_1
+  id: analog_sig_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    amp: '1'
+    comment: ''
+    freq: '40'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    offset: '0'
+    phase: '0'
+    samp_rate: samp_rate
+    type: float
+    waveform: analog.GR_SQR_WAVE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [88, 304.0]
+    rotation: 0
+    state: true
+- name: analog_sig_source_x_1_0
   id: analog_sig_source_x
   parameters:
     affinity: ''
@@ -85,9 +107,26 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 160.0]
+    coordinate: [88, 168.0]
     rotation: 0
     state: true
+- name: audio_sink_0
+  id: audio_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    device_name: ''
+    num_inputs: '1'
+    ok_to_block: 'True'
+    samp_rate: samp_rate
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 600.0]
+    rotation: 0
+    state: disabled
 - name: blocks_int_to_float_0
   id: blocks_int_to_float
   parameters:
@@ -102,7 +141,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [848, 360.0]
+    coordinate: [856, 496.0]
     rotation: 0
     state: true
 - name: blocks_multiply_xx_0
@@ -120,7 +159,102 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 288.0]
+    coordinate: [424, 376.0]
+    rotation: 0
+    state: true
+- name: blocks_multiply_xx_0_0
+  id: blocks_multiply_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_inputs: '2'
+    type: float
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [312, 256.0]
+    rotation: 0
+    state: true
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1272, 520.0]
+    rotation: 0
+    state: true
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
+      import pmt\nfrom gnuradio import gr\nfrom sklearn.cluster import KMeans\n\n\n\
+      class blk(gr.sync_block):  # other base classes are basic_block, decim_block,\
+      \ interp_block\n    \"\"\"Embedded Python Block example - a simple multiply\
+      \ const\"\"\"\n\n    def handler_msg(self, msg):\n        event = pmt.to_long(msg);\n\
+      \        distance = (event>>1)-(self.previous>>1)\n        if (event & 1) ==\
+      \ 0:\t\t# State changed to zero, we got lenght of on\n            self.onvector[self.eventcount_on\
+      \ & 1023] = [distance]\n            self.eventcount_on += 1\n        else:\n\
+      \            self.offvector[self.eventcount_off & 1023] = [distance]\n     \
+      \       self.eventcount_off += 1\n        if (self.eventcount+1) % 64000 ==\
+      \ 0:\n            self.kmeans_dd.fit(self.onvector)\n            y_kmeans =\
+      \ self.kmeans_dd.predict(self.onvector)\n            centers = self.kmeans_dd.cluster_centers_\n\
+      \            dot, dash = (centers[0][0], centers[1][0]) if centers[0][0] < centers[1][0]\
+      \ else (centers[1][0], centers[0][0])\n            self.middle = (dot+dash)/2\n\
+      \            diff = dash-dot\n            self.low = dot-diff\n            self.high\
+      \ = dash+diff\n            print('low: {:f} dot: {:f} middle: {:f} dash: {:f}\
+      \ high: {:f}'.format(self.low, dot, self.middle, dash, self.high))\n       \
+      \     self.kmeans_space.fit(self.offvector)\n            y_kmeans = self.kmeans_space.predict(self.offvector)\n\
+      \            centers = self.kmeans_space.cluster_centers_\n            spaces\
+      \ = []\n            for i in centers:\n                spaces.append(i[0])\n\
+      \            print('spaces: ', sorted(spaces))\n        self.previous = event\n\
+      \        self.eventcount += 1\n\n    def __init__(self, example_param=1.0):\
+      \  # only default arguments here\n        \"\"\"arguments to this function show\
+      \ up as parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n         \
+      \   self,\n            name='Signal cluster analysis',   # will show up in GRC\n\
+      \            in_sig=[np.float32],\n            out_sig=[np.complex64]\n    \
+      \    )\n        self.message_port_register_in(pmt.intern(\"cwevent\"))\n   \
+      \     self.set_msg_handler(pmt.intern(\"cwevent\"), self.handler_msg)\n\n  \
+      \      # if an attribute with the same name as a parameter is found,\n     \
+      \   # a callback is registered (properties work, too).\n        self.example_param\
+      \ = example_param\n        self.eventcount = 0\n        self.eventcount_on =\
+      \ 0\n        self.eventcount_off = 0\n        self.previous = 0\n        self.onvector\
+      \ = [None]*1024\n        self.offvector = [None]*1024\n        self.kmeans_dd\
+      \ = KMeans(n_clusters=2)  # dash or dot\n        self.kmeans_space = KMeans(n_clusters=3)\
+      \  # letter space, word space, transmission space\n        \n\n    def work(self,\
+      \ input_items, output_items):\n        \"\"\"example: multiply with constant\"\
+      \"\"\n        #output_items[0][:] = input_items[0] * self.example_param\n  \
+      \      return len(output_items[0])\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    example_param: '1.0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Signal cluster analysis', 'blk', [('example_param', '1.0')], [('0',
+      'float', 1), ('cwevent', 'message', 1)], [('0', 'complex', 1)], 'Embedded Python
+      Block example - a simple multiply const', ['example_param'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1032, 504.0]
     rotation: 0
     state: true
 - name: msz_cw_0
@@ -138,7 +272,21 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [552, 328.0]
+    coordinate: [552, 472.0]
+    rotation: 0
+    state: true
+- name: note_0
+  id: note
+  parameters:
+    alias: ''
+    comment: ''
+    note: Not too realistic for a morse generator, just giving out arbitray length
+      0s and 1s.
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [280, 160.0]
     rotation: 0
     state: true
 - name: qtgui_time_sink_x_0
@@ -169,7 +317,7 @@ blocks:
     color8: dark red
     color9: dark green
     comment: ''
-    ctrlpanel: 'False'
+    ctrlpanel: 'True'
     entags: 'True'
     grid: 'False'
     gui_hint: ''
@@ -235,7 +383,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [856, 80.0]
+    coordinate: [856, 224.0]
     rotation: 0
     state: true
 - name: qtgui_time_sink_x_1
@@ -266,7 +414,7 @@ blocks:
     color8: dark red
     color9: dark green
     comment: ''
-    ctrlpanel: 'False'
+    ctrlpanel: 'True'
     entags: 'True'
     grid: 'False'
     gui_hint: ''
@@ -332,20 +480,26 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1008, 200.0]
+    coordinate: [1016, 344.0]
     rotation: 0
     state: true
 
 connections:
 - [analog_sig_source_x_0, '0', blocks_multiply_xx_0, '1']
-- [analog_sig_source_x_1, '0', blocks_multiply_xx_0, '0']
-- [analog_sig_source_x_1, '0', qtgui_time_sink_x_0, '0']
-- [analog_sig_source_x_1, '0', qtgui_time_sink_x_1, '0']
+- [analog_sig_source_x_1, '0', blocks_multiply_xx_0_0, '1']
+- [analog_sig_source_x_1_0, '0', blocks_multiply_xx_0_0, '0']
+- [blocks_int_to_float_0, '0', epy_block_0, '0']
 - [blocks_int_to_float_0, '0', qtgui_time_sink_x_1, '1']
+- [blocks_multiply_xx_0, '0', audio_sink_0, '0']
 - [blocks_multiply_xx_0, '0', msz_cw_0, '0']
 - [blocks_multiply_xx_0, '0', qtgui_time_sink_x_0, '1']
+- [blocks_multiply_xx_0_0, '0', blocks_multiply_xx_0, '0']
+- [blocks_multiply_xx_0_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_multiply_xx_0_0, '0', qtgui_time_sink_x_1, '0']
+- [epy_block_0, '0', blocks_null_sink_0, '0']
 - [msz_cw_0, '0', qtgui_time_sink_x_0, '2']
 - [msz_cw_0, '1', blocks_int_to_float_0, '0']
+- [msz_cw_0, cwevent, epy_block_0, cwevent]
 
 metadata:
   file_format: 1
